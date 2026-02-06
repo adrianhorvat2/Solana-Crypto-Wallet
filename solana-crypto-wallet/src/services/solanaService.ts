@@ -75,13 +75,21 @@ export const getTransactionHistory = async (publicKey: string): Promise<Transact
       });
       
       if (!tx?.meta) continue;
+
+      const accountKeys = tx.transaction.message.accountKeys;
+      const ourIndex = accountKeys.findIndex(
+        (key) => key.pubkey.toBase58() === publicKey
+      );
       
-      const preBalance = tx.meta.preBalances[0];
-      const postBalance = tx.meta.postBalances[0];
+      const preBalance = tx.meta.preBalances[ourIndex];
+      const postBalance = tx.meta.postBalances[ourIndex];
       const diff = (postBalance - preBalance) / LAMPORTS_PER_SOL;
       
 
       const isSent = diff < 0;
+
+      const otherIndex = isSent ? 1 : 0;
+      const otherParty = accountKeys[otherIndex]?.pubkey.toBase58() || 'Unknown';
       
       transactions.push({
         signature: sig.signature,
