@@ -9,10 +9,12 @@ import { TransactionHistory } from './components/TransactionHistory';
 import './App.css';
 
 type Screen = 'welcome' | 'seedPhrase' | 'walletInfo';
+type Tab = 'tokens' | 'history';
 
 function App() {
   const [screen, setScreen] = useState<Screen>('welcome');
   const [wallet, setWallet] = useState<WalletData | null>(null);
+  const [activeTab, setActiveTab] = useState<Tab>('tokens');
 
   const handleWalletCreated = (newWallet: WalletData, isImport: boolean = false) => {
     setWallet(newWallet);
@@ -49,9 +51,33 @@ function App() {
         {screen === 'walletInfo' && wallet && (
           <>
             <WalletInfo publicKey={wallet.publicKey} />
-            <TokenList publicKey={wallet.publicKey} />
             <SendTransaction secretKey={wallet.secretKey} />
-            <TransactionHistory publicKey={wallet.publicKey} />
+            
+            <div className="tab-container">
+              <div className="tab-buttons">
+                <button 
+                  className={`tab-btn ${activeTab === 'tokens' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('tokens')}
+                >
+                  Tokens
+                </button>
+                <button 
+                  className={`tab-btn ${activeTab === 'history' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('history')}
+                >
+                  History
+                </button>
+              </div>
+              
+              <div className="tab-content">
+                {activeTab === 'tokens' && (
+                  <TokenList publicKey={wallet.publicKey} />
+                )}
+                {activeTab === 'history' && (
+                  <TransactionHistory publicKey={wallet.publicKey} />
+                )}
+              </div>
+            </div>
             <button onClick={handleLogout} className="btn-logout">
               Logout
             </button>

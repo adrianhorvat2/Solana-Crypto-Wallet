@@ -471,3 +471,41 @@ main {
   font-size: 0.85rem;
   padding: 16px;
 }
+
+.tab-container {
+  margin-top: 20px;
+}
+
+.tab-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.tab-btn {
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  color: #71717a;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #a1a1aa;
+}
+
+.tab-btn.active {
+  background: rgba(153, 69, 255, 0.15);
+  border-color: rgba(153, 69, 255, 0.4);
+  color: #9945FF;
+}
+
+.tab-content {
+  min-height: 200px;
+}
