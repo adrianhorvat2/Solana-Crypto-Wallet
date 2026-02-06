@@ -1,35 +1,63 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from 'react';
+import { CreateWallet } from './components/CreateWallet';
+import { SeedPhraseBackup } from './components/SeedPhraseBackup';
+import { TokenList } from './components/TokenList';
+import { SendTransaction } from './components/SendTransaction';
+import type { WalletData } from './types/wallet';
+import { WalletInfo } from './components/WalletInfo';
+import './App.css';
+
+type Screen = 'welcome' | 'seedPhrase' | 'walletInfo';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [screen, setScreen] = useState<Screen>('welcome');
+  const [wallet, setWallet] = useState<WalletData | null>(null);
+
+  const handleWalletCreated = (newWallet: WalletData, isImport: boolean = false) => {
+    setWallet(newWallet);
+    setScreen(isImport ? 'walletInfo' : 'seedPhrase');
+  };
+
+  const handleBackupConfirmed = () => {
+    setScreen('walletInfo');
+  };
+
+  const handleLogout = () => {
+    setWallet(null);
+    setScreen('welcome');
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div className="app">
+      <header>
+        <h1>◎ Solana Wallet</h1>
+      </header>
+
+      <main>
+        {screen === 'welcome' && (
+          <CreateWallet onWalletCreated={handleWalletCreated} />
+        )}
+
+        {screen === 'seedPhrase' && wallet && (
+          <SeedPhraseBackup 
+            mnemonic={wallet.mnemonic} 
+            onConfirmed={handleBackupConfirmed} 
+          />
+        )}
+
+        {screen === 'walletInfo' && wallet && (
+          <>
+            <WalletInfo publicKey={wallet.publicKey} />
+            <TokenList publicKey={wallet.publicKey} />
+            <SendTransaction secretKey={wallet.secretKey} />
+            <button onClick={handleLogout} className="btn-logout">
+              Logout
+            </button>
+          </>
+        )}
+      </main>
+    </div>
+  );
 }
 
-export default App
+export default App;
