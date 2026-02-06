@@ -96,9 +96,7 @@ export const getTransactionHistory = async (publicKey: string): Promise<Transact
         timestamp: sig.blockTime ?? null,
         type: isSent ? 'sent' : 'received',
         amount: Math.abs(diff),
-        otherParty: isSent 
-          ? tx.transaction.message.accountKeys[1]?.pubkey.toBase58() || 'Unknown'
-          : tx.transaction.message.accountKeys[0]?.pubkey.toBase58() || 'Unknown',
+        otherParty: otherParty,
         status: tx.meta.err ? 'failed' : 'success',
       });
     } catch (e) {

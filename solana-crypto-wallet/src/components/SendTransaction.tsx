@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { sendSol } from '../services/solanaService';
+import { sendSol, getBalance } from '../services/solanaService';
 import { getKeypairFromSecretKey } from '../services/walletService';
 
 interface SendTransactionProps {
@@ -31,6 +31,14 @@ export const SendTransaction = ({ secretKey }: SendTransactionProps) => {
     setLoading(true);
     try {
       const keypair = getKeypairFromSecretKey(secretKey);
+
+      const balance = await getBalance(keypair.publicKey.toBase58());
+      if (amountNum > balance) {
+        setError('Not enough balance');
+        setLoading(false);
+        return;
+      }
+
       const signature = await sendSol(keypair, toAddress, amountNum);
       setTxSignature(signature);
       setToAddress('');
