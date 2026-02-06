@@ -10,3 +10,12 @@ export interface TokenBalance {
   balance: number;
   decimals: number;
 }
+
+export interface TransactionRecord {
+  signature: string;
+  timestamp: number | null;
+  type: 'sent' | 'received';
+  amount: number;
+  otherParty: string;
+  status: 'success' | 'failed';
+}

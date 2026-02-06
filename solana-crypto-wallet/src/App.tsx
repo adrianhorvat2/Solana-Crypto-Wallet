@@ -5,6 +5,7 @@ import { TokenList } from './components/TokenList';
 import { SendTransaction } from './components/SendTransaction';
 import type { WalletData } from './types/wallet';
 import { WalletInfo } from './components/WalletInfo';
+import { TransactionHistory } from './components/TransactionHistory';
 import './App.css';
 
 type Screen = 'welcome' | 'seedPhrase' | 'walletInfo';
@@ -50,6 +51,7 @@ function App() {
             <WalletInfo publicKey={wallet.publicKey} />
             <TokenList publicKey={wallet.publicKey} />
             <SendTransaction secretKey={wallet.secretKey} />
+            <TransactionHistory publicKey={wallet.publicKey} />
             <button onClick={handleLogout} className="btn-logout">
               Logout
             </button>
