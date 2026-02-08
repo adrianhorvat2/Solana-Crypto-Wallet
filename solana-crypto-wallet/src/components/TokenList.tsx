@@ -37,7 +37,6 @@ export const TokenList = ({ publicKey }: TokenListProps) => {
       <h3>Your Tokens</h3>
       
       <div className="sol-balance">
-        <span className="token-icon">◎</span>
         <span className="token-name">SOL</span>
         <span className="token-amount">{solBalance.toFixed(4)}</span>
       </div>

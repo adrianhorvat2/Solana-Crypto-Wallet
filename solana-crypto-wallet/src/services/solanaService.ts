@@ -15,6 +15,11 @@ const RPC_URL = `https://devnet.helius-rpc.com/?api-key=${HELIUS_API_KEY}`;
 
 const connection = new Connection(RPC_URL, 'confirmed');
 
+const KNOWN_TOKENS: Record<string, string> = {
+  '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU': 'USDC',
+  'So11111111111111111111111111111111111111112': 'wSOL',
+};
+
 // SOL balance
 export const getBalance = async (publicKey: string): Promise<number> => {
   const pubKey = new PublicKey(publicKey);
@@ -32,9 +37,10 @@ export const getTokenBalances = async (publicKey: string): Promise<TokenBalance[
   
   return tokenAccounts.value.map((account) => {
     const info = account.account.data.parsed.info;
+    const mint = info.mint;
     return {
       mint: info.mint,
-      symbol: info.mint.slice(0, 4) + '...', 
+      symbol: KNOWN_TOKENS[mint] || mint.slice(0, 4) + '...', 
       balance: info.tokenAmount.uiAmount || 0,
       decimals: info.tokenAmount.decimals,
     };
