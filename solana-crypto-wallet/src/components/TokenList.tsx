@@ -14,9 +14,12 @@ export const TokenList = ({ publicKey }: TokenListProps) => {
   const fetchBalances = async () => {
     setLoading(true);
     try {
+      // SOL
       const sol = await getBalance(publicKey);
-      const tokenList = await getTokenBalances(publicKey);
       setSolBalance(sol);
+
+      // SPL
+      const tokenList = await getTokenBalances(publicKey);
       setTokens(tokenList);
     } catch (error) {
       console.error('Error fetching balances:', error);
@@ -29,7 +32,7 @@ export const TokenList = ({ publicKey }: TokenListProps) => {
   }, [publicKey]);
 
   if (loading) {
-    return <div className="loading">Loading...</div>;
+    return <div className="loading">Loading tokens...</div>;
   }
 
   return (
@@ -46,7 +49,7 @@ export const TokenList = ({ publicKey }: TokenListProps) => {
           {tokens.map((token, index) => (
             <div key={index} className="token-item">
               <span className="token-name">{token.symbol}</span>
-              <span className="token-amount">{token.balance}</span>
+              <span className="token-amount">{token.balance.toFixed(4)}</span>
             </div>
           ))}
         </div>
@@ -54,11 +57,7 @@ export const TokenList = ({ publicKey }: TokenListProps) => {
 
       {tokens.length === 0 && (
         <p className="no-tokens">You don't have any SPL tokens</p>
-      )}
-      
-      <button onClick={fetchBalances} className="btn-secondary">
-        Refresh
-      </button>
+      )}      
     </div>
   );
 };

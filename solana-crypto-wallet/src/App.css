@@ -33,14 +33,6 @@ header h1 {
   gap: 8px;
 }
 
-header h1::before {
-  content: '';
-  width: 32px;
-  height: 32px;
-  background: #9945FF;
-  border-radius: 50%;
-}
-
 main {
   background: #232326;
   border-radius: 16px;
@@ -225,6 +217,7 @@ main {
 .wallet-info {
   text-align: center;
   padding: 16px;
+  margin-bottom: 16px;
   background: #1a1a1d;
   border-radius: 10px;
   border: 1px solid #27272a;
@@ -286,7 +279,7 @@ main {
 .token-amount {
   font-family: 'SF Mono', 'Fira Code', monospace;
   font-size: 1rem;
-  color: #fff;
+  color: #9945FF;
 }
 
 .token-item {

@@ -82,10 +82,6 @@ export const TransactionHistory = ({ publicKey }: TransactionHistoryProps) => {
           ))}
         </div>
       )}
-      
-      <button onClick={fetchTransactions} className="btn-secondary">
-        Refresh
-      </button>
     </div>
   );
 };

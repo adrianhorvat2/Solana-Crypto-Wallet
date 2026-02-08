@@ -15,6 +15,11 @@ function App() {
   const [screen, setScreen] = useState<Screen>('welcome');
   const [wallet, setWallet] = useState<WalletData | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>('tokens');
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  const triggerRefresh = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
 
   const handleWalletCreated = (newWallet: WalletData, isImport: boolean = false) => {
     setWallet(newWallet);
@@ -28,12 +33,13 @@ function App() {
   const handleLogout = () => {
     setWallet(null);
     setScreen('welcome');
+    setRefreshTrigger(0);
   };
 
   return (
     <div className="app">
       <header>
-        <h1>◎ Solana Wallet</h1>
+        <h1>Solana Wallet</h1>
       </header>
 
       <main>
@@ -51,7 +57,11 @@ function App() {
         {screen === 'walletInfo' && wallet && (
           <>
             <WalletInfo publicKey={wallet.publicKey} />
-            <SendTransaction secretKey={wallet.secretKey} />
+            
+            <SendTransaction 
+              secretKey={wallet.secretKey} 
+              onTransactionSuccess={triggerRefresh}
+            />
             
             <div className="tab-container">
               <div className="tab-buttons">
@@ -71,13 +81,24 @@ function App() {
               
               <div className="tab-content">
                 {activeTab === 'tokens' && (
-                  <TokenList publicKey={wallet.publicKey} />
+                  <TokenList 
+                    publicKey={wallet.publicKey} 
+                    key={`tokens-${refreshTrigger}`} 
+                  />
                 )}
                 {activeTab === 'history' && (
-                  <TransactionHistory publicKey={wallet.publicKey} />
+                  <TransactionHistory 
+                    publicKey={wallet.publicKey} 
+                    key={`history-${refreshTrigger}`} 
+                  />
                 )}
               </div>
             </div>
+            
+            <button onClick={triggerRefresh} className="btn-secondary" style={{ marginTop: '24px' }}>
+              ↻ Refresh
+            </button>
+
             <button onClick={handleLogout} className="btn-logout">
               Logout
             </button>
