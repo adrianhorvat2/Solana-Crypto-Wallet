@@ -18,4 +18,5 @@ export interface TransactionRecord {
   amount: number;
   otherParty: string;
   status: 'success' | 'failed';
+  tokenSymbol: string;
 }

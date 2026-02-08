@@ -74,7 +74,7 @@ export const TransactionHistory = ({ publicKey }: TransactionHistoryProps) => {
               <div className="tx-amount">
                 <span className={tx.type}>
                   {tx.type === 'sent' ? '-' : '+'}
-                  {tx.amount.toFixed(4)} SOL
+                  {tx.amount.toFixed(4)} {tx.tokenSymbol}
                 </span>
                 <span className="tx-date">{formatDate(tx.timestamp)}</span>
               </div>

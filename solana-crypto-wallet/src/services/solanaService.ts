@@ -68,45 +68,49 @@ export const sendSol = async (
 };
 
 export const getTransactionHistory = async (publicKey: string): Promise<TransactionRecord[]> => {
-  const pubKey = new PublicKey(publicKey);
+
+    const response = await fetch(
+    `https://api-devnet.helius.xyz/v0/addresses/${publicKey}/transactions?api-key=${HELIUS_API_KEY}`
+  );
   
-  const signatures = await connection.getSignaturesForAddress(pubKey, { limit: 10 });
-  
+  const txs = await response.json();
   const transactions: TransactionRecord[] = [];
   
-  for (const sig of signatures) {
-    try {
-      const tx = await connection.getParsedTransaction(sig.signature, {
-        maxSupportedTransactionVersion: 0,
-      });
+  for (const tx of txs.slice(0, 10)) {
+    const nativeTransfers = tx.nativeTransfers || [];
+    const tokenTransfers = tx.tokenTransfers || [];
+    
+    for (const transfer of nativeTransfers) {
+      const isSent = transfer.fromUserAccount === publicKey;
+      const amount = transfer.amount / LAMPORTS_PER_SOL;
       
-      if (!tx?.meta) continue;
-
-      const accountKeys = tx.transaction.message.accountKeys;
-      const ourIndex = accountKeys.findIndex(
-        (key) => key.pubkey.toBase58() === publicKey
-      );
-      
-      const preBalance = tx.meta.preBalances[ourIndex];
-      const postBalance = tx.meta.postBalances[ourIndex];
-      const diff = (postBalance - preBalance) / LAMPORTS_PER_SOL;
-      
-
-      const isSent = diff < 0;
-
-      const otherIndex = isSent ? 1 : 0;
-      const otherParty = accountKeys[otherIndex]?.pubkey.toBase58() || 'Unknown';
+      if (Math.abs(amount) < 0.00001) continue;
       
       transactions.push({
-        signature: sig.signature,
-        timestamp: sig.blockTime ?? null,
+        signature: tx.signature,
+        timestamp: tx.timestamp,
         type: isSent ? 'sent' : 'received',
-        amount: Math.abs(diff),
-        otherParty: otherParty,
-        status: tx.meta.err ? 'failed' : 'success',
+        amount: Math.abs(amount),
+        otherParty: isSent ? transfer.toUserAccount : transfer.fromUserAccount,
+        status: 'success',
+        tokenSymbol: 'SOL',
       });
-    } catch (e) {
-      console.error('Error parsing transaction:', e);
+    }
+    
+    for (const transfer of tokenTransfers) {
+      const isSent = transfer.fromUserAccount === publicKey;
+      const mint = transfer.mint;
+      const symbol = KNOWN_TOKENS[mint] || mint.slice(0, 4) + '...';
+      
+      transactions.push({
+        signature: tx.signature,
+        timestamp: tx.timestamp,
+        type: isSent ? 'sent' : 'received',
+        amount: transfer.tokenAmount,
+        otherParty: isSent ? transfer.toUserAccount : transfer.fromUserAccount,
+        status: 'success',
+        tokenSymbol: symbol,
+      });
     }
   }
   
