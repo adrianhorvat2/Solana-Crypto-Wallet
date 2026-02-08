@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { sendSol, getBalance } from '../services/solanaService';
+import { useState, useEffect } from 'react';
+import { sendSol, sendToken, getBalance, getTokenBalances } from '../services/solanaService';
 import { getKeypairFromSecretKey } from '../services/walletService';
+import type { TokenBalance } from '../types/wallet';
 
 interface SendTransactionProps {
   secretKey: Uint8Array;
@@ -11,7 +12,35 @@ export const SendTransaction = ({ secretKey }: SendTransactionProps) => {
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
   const [txSignature, setTxSignature] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useState('');  
+  const [availableTokens, setAvailableTokens] = useState<TokenBalance[]>([]);
+  const [selectedTokenMint, setSelectedTokenMint] = useState<string>('SOL');
+
+  // Load SOL & SPL tokens
+  useEffect(() => {
+    const fetchAssets = async () => {
+      try {
+        const keypair = getKeypairFromSecretKey(secretKey);
+        const pubKey = keypair.publicKey.toBase58();
+
+        const solBal = await getBalance(pubKey);
+        const solToken: TokenBalance = {
+            mint: 'SOL',
+            symbol: 'SOL',
+            balance: solBal,
+            decimals: 9
+        };
+
+        const splTokens = await getTokenBalances(pubKey);
+
+        setAvailableTokens([solToken, ...splTokens]);
+      } catch (e) {
+        console.error("Error loading tokens for dropdown", e);
+      }
+    };
+
+    fetchAssets();
+  }, [secretKey, txSignature]);
 
   const handleSend = async () => {
     setError('');
@@ -31,43 +60,75 @@ export const SendTransaction = ({ secretKey }: SendTransactionProps) => {
     setLoading(true);
     try {
       const keypair = getKeypairFromSecretKey(secretKey);
-
-      const balance = await getBalance(keypair.publicKey.toBase58());
-      if (amountNum > balance) {
-        setError('Not enough balance');
-        setLoading(false);
-        return;
+      
+      const tokenInfo = availableTokens.find(t => t.mint === selectedTokenMint);
+      
+      if (!tokenInfo) throw new Error("Token info not found");
+      if (amountNum > tokenInfo.balance) {
+        throw new Error(`Not enough ${tokenInfo.symbol} balance`);
       }
 
-      const signature = await sendSol(keypair, toAddress, amountNum);
+      let signature = '';
+
+      // Logic check: Which token is being sent
+      if (selectedTokenMint === 'SOL') {
+        signature = await sendSol(keypair, toAddress, amountNum);
+      } else {
+        signature = await sendToken(keypair, toAddress, amountNum, selectedTokenMint);
+      }
+
       setTxSignature(signature);
       setToAddress('');
       setAmount('');
+      
     } catch (err: any) {
+      console.error(err);
       setError(err.message || 'Transaction failed');
     }
     setLoading(false);
   };
 
   return (
-    <div className="send-transaction">
-      <h3>Send SOL</h3>
-      
-      <input
+    <div className="send-transaction">      
+      {/* Dropdown */}
+      <div className="form-group">
+        <label>Select Asset:</label>
+        <select 
+            value={selectedTokenMint} 
+            onChange={(e) => setSelectedTokenMint(e.target.value)}
+            className="token-select"
+        >
+            {availableTokens.map((token) => (
+                <option key={token.mint} value={token.mint}>
+                    {token.symbol} (Balance: {token.balance})
+                </option>
+            ))}
+        </select>
+      </div>
+
+      {/* Address */}
+      <div className="form-group">
+        <label>Recipient Address</label>
+        <input 
         type="text"
-        placeholder="Recipient Address"
+        placeholder="Paste address"
         value={toAddress}
         onChange={(e) => setToAddress(e.target.value)}
-      />
+        />
+      </div>
       
-      <input
+      {/* Amount */}
+      <div className="form-group">
+        <label>Amount</label>
+        <input 
         type="number"
-        placeholder="Amount (SOL)"
+        placeholder="0.00"
         value={amount}
         onChange={(e) => setAmount(e.target.value)}
-        step="0.001"
+        step="0.000001"
         min="0"
-      />
+        />
+      </div>
       
       {error && <p className="error">{error}</p>}
       
